@@ -2,10 +2,10 @@
 #include <vector>
 #include <windows.h>
 
-// 串口设备名（Windows 下 COM 口，例如 COM3）
+// 串口设备名
 const std::string SERIAL_PORT = "COM3";
 
-// **计算校验码**
+// 计算校验码
 uint8_t calculateChecksum(const std::vector<uint8_t>& data) {
     uint8_t checksum = 0;
     for (size_t i = 0; i < data.size(); i++) {
@@ -14,124 +14,100 @@ uint8_t calculateChecksum(const std::vector<uint8_t>& data) {
     return checksum;
 }
 
-// **发送数据到扫码器**
+// 发送数据
 bool sendData(HANDLE hSerial, const std::vector<uint8_t>& command) {
     DWORD bytesWritten;
     return WriteFile(hSerial, command.data(), static_cast<DWORD>(command.size()), &bytesWritten, NULL);
 }
 
-// **读取扫码器返回的数据**
+// 读取数据
 std::vector<uint8_t> receiveData(HANDLE hSerial) {
-    std::vector<uint8_t> response(64);
+    std::vector<uint8_t> response(256); // 扫码数据一般不会太长
     DWORD bytesRead;
     ReadFile(hSerial, response.data(), static_cast<DWORD>(response.size()), &bytesRead, NULL);
     response.resize(bytesRead);
     return response;
 }
 
-// **打开串口**
+// 打开串口
 HANDLE openSerialPort(const std::string& portName) {
     HANDLE hSerial = CreateFileA(portName.c_str(), GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0);
     if (hSerial == INVALID_HANDLE_VALUE) {
         std::cerr << "无法打开串口 " << portName << std::endl;
         return INVALID_HANDLE_VALUE;
     }
+
+    // 配置串口
+    DCB dcbSerialParams = { 0 };
+    dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+    if (!GetCommState(hSerial, &dcbSerialParams)) {
+        std::cerr << "获取串口状态失败" << std::endl;
+        CloseHandle(hSerial);
+        return INVALID_HANDLE_VALUE;
+    }
+
+    dcbSerialParams.BaudRate = CBR_115200; // 根据扫码器说明书设置波特率
+    dcbSerialParams.ByteSize = 8;
+    dcbSerialParams.StopBits = ONESTOPBIT;
+    dcbSerialParams.Parity = NOPARITY;
+
+    if (!SetCommState(hSerial, &dcbSerialParams)) {
+        std::cerr << "无法配置串口" << std::endl;
+        CloseHandle(hSerial);
+        return INVALID_HANDLE_VALUE;
+    }
+
     return hSerial;
 }
 
+// 字节流转换为 UTF-8 字符串
+std::string bytesToUtf8(const std::vector<uint8_t>& data) {
+    if (data.empty()) return "";
 
-// **获取扫码结果（指令 0x30）**
+    // 假设扫码器返回 GBK 编码，转换为 UTF-8
+    int wideSize = MultiByteToWideChar(936, 0, (char*)data.data(), (int)data.size(), NULL, 0);
+    std::wstring wideStr(wideSize, 0);
+    MultiByteToWideChar(936, 0, (char*)data.data(), (int)data.size(), &wideStr[0], wideSize);
+
+    int utf8Size = WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, NULL, 0, NULL, NULL);
+    std::string utf8Str(utf8Size, 0);
+    WideCharToMultiByte(CP_UTF8, 0, wideStr.c_str(), -1, &utf8Str[0], utf8Size, NULL, NULL);
+
+    return utf8Str;
+}
+
+// 获取扫码结果（0x30 指令）
 std::string getScanResult(HANDLE hSerial) {
-    // 构造 0x30 指令数据包
-    std::vector<uint8_t> command = {0x55, 0xAA, 0x30, 0x00, 0x00};
-    command.push_back(calculateChecksum(command)); // 添加校验字
+    std::vector<uint8_t> command = { 0x55, 0xAA, 0x30, 0x00, 0x00 };
+    command.push_back(calculateChecksum(command));
 
-    // 发送指令
     sendData(hSerial, command);
-
-    // 读取扫码器返回数据
     std::vector<uint8_t> response = receiveData(hSerial);
 
-    // 校验数据长度
     if (response.size() < 7) {
         std::cerr << "扫码器未返回有效数据" << std::endl;
         return "";
     }
 
     // 解析扫码数据
-    uint8_t status = response[3]; // 标识字 0x00 代表成功
-    if (status != 0x00) {
-        std::cerr << "扫码器返回错误状态：" << static_cast<int>(status) << std::endl;
-        return "";
-    }
-
-    // 提取扫码结果
-    std::string qrContent(response.begin() + 7, response.end());
-    std::cout << "扫码结果：" << qrContent << std::endl;
-
-    return qrContent;
+    std::vector<uint8_t> scanData(response.begin() + 6, response.end() - 1); // 去掉协议头
+    return bytesToUtf8(scanData);
 }
 
-// **获取设备信息（指令 0x33）**
-std::string getDeviceInfo(HANDLE hSerial) {
-    // 构造 0x33 指令数据包
-    std::vector<uint8_t> command = {0x55, 0xAA, 0x33, 0x00, 0x00};
-    command.push_back(calculateChecksum(command)); // 添加校验字
+// 主函数
+int main() {
+    SetConsoleOutputCP(CP_UTF8); // 设置控制台编码为 UTF-8
+    HANDLE hSerial = openSerialPort(SERIAL_PORT);
+    if (hSerial == INVALID_HANDLE_VALUE) return -1;
 
-    // 发送指令
-    sendData(hSerial, command);
-
-    // 读取扫码器返回数据
-    std::vector<uint8_t> response = receiveData(hSerial);
-
-    // 校验数据长度
-    if (response.size() < 7) {
-        std::cerr << "扫码器未返回有效数据" << std::endl;
-        return "";
+    std::string scanData = getScanResult(hSerial);
+    if (!scanData.empty()) {
+        std::cout << "扫码结果: " << scanData << std::endl;
+    }
+    else {
+        std::cerr << "未获取到二维码数据" << std::endl;
     }
 
-    // 解析设备信息
-    uint8_t status = response[3]; // 标识字 0x00 代表成功
-    if (status != 0x00) {
-        std::cerr << "扫码器返回错误状态：" << static_cast<int>(status) << std::endl;
-        return "";
-    }
-
-    // 提取设备信息
-    std::string deviceInfo(response.begin() + 7, response.end());
-    std::cout << "设备信息：" << deviceInfo << std::endl;
-
-    return deviceInfo;
-}
-
-// **获取扫码器状态（指令 0x32）**
-std::string getScannerStatus(HANDLE hSerial) {
-    // 构造 0x32 指令数据包
-    std::vector<uint8_t> command = {0x55, 0xAA, 0x32, 0x00, 0x00};
-    command.push_back(calculateChecksum(command)); // 添加校验字
-
-    // 发送指令
-    sendData(hSerial, command);
-
-    // 读取扫码器返回数据
-    std::vector<uint8_t> response = receiveData(hSerial);
-
-    // 校验数据长度
-    if (response.size() < 7) {
-        std::cerr << "扫码器未返回有效数据" << std::endl;
-        return "";
-    }
-
-    // 解析扫码器状态
-    uint8_t status = response[3]; // 标识字 0x00 代表成功
-    if (status != 0x00) {
-        std::cerr << "扫码器返回错误状态：" << static_cast<int>(status) << std::endl;
-        return "";
-    }
-
-    // 提取扫码器状态
-    std::string scannerStatus(response.begin() + 7, response.end());
-    std::cout << "扫码器状态：" << scannerStatus << std::endl;
-
-    return scannerStatus;
+    CloseHandle(hSerial);
+    return 0;
 }
