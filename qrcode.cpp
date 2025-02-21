@@ -71,3 +71,67 @@ std::string getScanResult(HANDLE hSerial) {
 
     return qrContent;
 }
+
+// **获取设备信息（指令 0x33）**
+std::string getDeviceInfo(HANDLE hSerial) {
+    // 构造 0x33 指令数据包
+    std::vector<uint8_t> command = {0x55, 0xAA, 0x33, 0x00, 0x00};
+    command.push_back(calculateChecksum(command)); // 添加校验字
+
+    // 发送指令
+    sendData(hSerial, command);
+
+    // 读取扫码器返回数据
+    std::vector<uint8_t> response = receiveData(hSerial);
+
+    // 校验数据长度
+    if (response.size() < 7) {
+        std::cerr << "扫码器未返回有效数据" << std::endl;
+        return "";
+    }
+
+    // 解析设备信息
+    uint8_t status = response[3]; // 标识字 0x00 代表成功
+    if (status != 0x00) {
+        std::cerr << "扫码器返回错误状态：" << static_cast<int>(status) << std::endl;
+        return "";
+    }
+
+    // 提取设备信息
+    std::string deviceInfo(response.begin() + 7, response.end());
+    std::cout << "设备信息：" << deviceInfo << std::endl;
+
+    return deviceInfo;
+}
+
+// **获取扫码器状态（指令 0x32）**
+std::string getScannerStatus(HANDLE hSerial) {
+    // 构造 0x32 指令数据包
+    std::vector<uint8_t> command = {0x55, 0xAA, 0x32, 0x00, 0x00};
+    command.push_back(calculateChecksum(command)); // 添加校验字
+
+    // 发送指令
+    sendData(hSerial, command);
+
+    // 读取扫码器返回数据
+    std::vector<uint8_t> response = receiveData(hSerial);
+
+    // 校验数据长度
+    if (response.size() < 7) {
+        std::cerr << "扫码器未返回有效数据" << std::endl;
+        return "";
+    }
+
+    // 解析扫码器状态
+    uint8_t status = response[3]; // 标识字 0x00 代表成功
+    if (status != 0x00) {
+        std::cerr << "扫码器返回错误状态：" << static_cast<int>(status) << std::endl;
+        return "";
+    }
+
+    // 提取扫码器状态
+    std::string scannerStatus(response.begin() + 7, response.end());
+    std::cout << "扫码器状态：" << scannerStatus << std::endl;
+
+    return scannerStatus;
+}
