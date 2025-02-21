@@ -94,6 +94,50 @@ std::string getScanResult(HANDLE hSerial) {
     return bytesToUtf8(scanData);
 }
 
+
+// 设置扫码器结果上报模式 (0x31)
+bool setReportMode(HANDLE hSerial, uint8_t mode, uint8_t timeout = 0) {
+    std::vector<uint8_t> command = { 0x55, 0xAA, 0x31, 0x02, 0x00, mode, timeout };
+    command.push_back(calculateChecksum(command));
+    return sendData(hSerial, command);
+}
+
+
+// 获取扫码结果（区分数据来源，0x33）
+std::pair<uint8_t, std::string> getScanResultWithSource(HANDLE hSerial) {
+    std::vector<uint8_t> command = { 0x55, 0xAA, 0x33, 0x00, 0x00 };
+    command.push_back(calculateChecksum(command));
+
+    sendData(hSerial, command);
+    std::vector<uint8_t> response = receiveData(hSerial);
+
+    if (response.size() < 8) {
+        std::cerr << "扫码器未返回有效数据" << std::endl;
+        return { 0, "" };
+    }
+
+    uint8_t sourceType = response[6];
+    std::vector<uint8_t> scanData(response.begin() + 7, response.end() - 1);
+    return { sourceType, std::string(scanData.begin(), scanData.end()) };
+}
+
+// 获取按键值 (0x32)
+uint8_t getKeyPress(HANDLE hSerial) {
+    std::vector<uint8_t> command = { 0x55, 0xAA, 0x32, 0x00, 0x00 };
+    command.push_back(calculateChecksum(command));
+
+    sendData(hSerial, command);
+    std::vector<uint8_t> response = receiveData(hSerial);
+
+
+    if (response.size() < 7) {
+        std::cerr << "data no vail" << std::endl;
+        return 0;
+    }
+
+    return response[6]; // 返回按键值
+}
+
 // 主函数
 int main() {
     SetConsoleOutputCP(CP_UTF8); // 设置控制台编码为 UTF-8

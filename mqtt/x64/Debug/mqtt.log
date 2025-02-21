@@ -1,0 +1,5 @@
+﻿  qrcode.cpp
+C:\Users\likaipeng\Desktop\LKP\2025.2.21\mqtt\qrcode.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(932)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  mqtt.vcxproj -> C:\Users\likaipeng\Desktop\LKP\2025.2.21\mqtt\x64\Debug\mqtt.exe
+  'pwsh.exe' は、内部コマンドまたは外部コマンド、
+  操作可能なプログラムまたはバッチ ファイルとして認識されていません。
