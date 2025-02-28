@@ -8,25 +8,28 @@ public:
     LedScreen();
     ~LedScreen();
 
-    // Á¬½Óµ½MQTT·þÎñÆ÷
+    // Á¬½Óµ½MQTT·þÎñÆE
     bool connect(const std::string& host, int port);
 
     // ¶Ï¿ªÁ¬½Ó
     void disconnect();
 
-    // ·¢ËÍÃüÁîµ½LEDÆÁÄ»
+    // ·¢ËÍÃEûÑ½LEDÆÁÄ»
     void sendCommand(int messageId);
+
+    // ²¥·ÅÎÄ×ÖºÍÓEôÄÚÈÝ
+    void playContent(int messageId);
 
 private:
     txrMqttClient* m_client;
 };
 
-// ÏûÏ¢ID¶¨Òå
-#define VTK_MSG_0 (0) // Info: Çë³ÖÐø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÔ¤Ô¼¶þÎ¬Âë½øÐÐÂÌÍ¨¼ì²âÔ¤Ô¼£¬Ö¸Ê¾µÆ³£ÁÁ±íÊ¾Ô¤Ô¼³É¹¦¡£
+// ÏûÏ¢ID¶¨ÒE
+#define VTK_MSG_0 (0) // Info: ÇEÖÐø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÔ¤Ô¼¶þÎ¬ÂEøÐÐÂÌÍ¨¼EâÔ¤Ô¼£¬Ö¸Ê¾µÆ³£ÁÁ±úæ¾Ô¤Ô¼³É¹¦¡£
 #define VTK_MSG_1 (1) // Info: Ô¤Ô¼³É¹¦
-#define VTK_MSG_2 (2) // Info: Ô¤Ô¼Ê§°Ü£¬ÇëÉÔºóÔÙÊÔ¡£
-#define VTK_MSG_3 (3) // Info: Ô¤Ô¼³É¹¦£¬ÇëÔÚÌ§¸ËºóÔÈËÙ½øÈë¼ì²âÇøÓò¡£ÈçÐèÈ¡ÏûÔ¤Ô¼£¬Çë³ÖÐø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÈ¡Ïû¶þÎ¬ÂëÈ¡ÏûÔ¤Ô¼£¬Ö¸Ê¾µÆÉÁË¸±íÊ¾È¡Ïû³É¹¦¡£
+#define VTK_MSG_2 (2) // Info: Ô¤Ô¼Ê§°Ü£¬ÇEÔºóÔÙÊÔ¡£
+#define VTK_MSG_3 (3) // Info: Ô¤Ô¼³É¹¦£¬ÇEÚÌ§¸ËºóÔÈËÙ½øÈEEâÇøÓò¡£ÈçÐèÈ¡ÏûÔ¤Ô¼£¬ÇEÖÐø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÈ¡Ïû¶þÎ¬ÂE¡ÏûÔ¤Ô¼£¬Ö¸Ê¾µÆÉÁË¸±úæ¾È¡Ïû³É¹¦¡£
 #define VTK_MSG_4 (4) // Info: È¡Ïû³É¹¦
-#define VTK_MSG_5 (5) // Info: È¡ÏûÊ§°Ü£¬ÇëÉÔºóÔÙÊÔ¡£
-#define VTK_MSG_6 (6) // Info: Ç°·½ÕýÔÚ½øÐÐÂÌÍ¨¼ì²â£¬ºó·½³µÁ¾ÇëÎð¸ú³µ½øÈë¼ì²âÇøÓò£¬ÇëÔÚµÈ´ýÇøµÈ´ý¡£
+#define VTK_MSG_5 (5) // Info: È¡ÏûÊ§°Ü£¬ÇEÔºóÔÙÊÔ¡£
+#define VTK_MSG_6 (6) // Info: Ç°·½ÕýÔÚ½øÐÐÂÌÍ¨¼Eâ£¬ºó·½³µÁ¾ÇEð¸ú³µ½øÈEEâÇøÓò£¬ÇEÚµÈ´ýÇøµÈ´ý¡£
 
