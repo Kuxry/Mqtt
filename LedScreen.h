@@ -1,35 +1,49 @@
-#pragma once
+ï»¿#pragma once
 #include "txrMqttClient.h"
+#include <string>
 
-// LEDÆÁÄ»½Ó¿Ú·â×°
+// LEDå±å¹•æ§åˆ¶ç±»
 class LedScreen
 {
 public:
-    LedScreen();
+    // é€šè¿‡ `barcode` è¯†åˆ«ä¸åŒçš„ LED å±å¹•
+    LedScreen(const std::string& barcode);
     ~LedScreen();
 
-    // Á¬½Óµ½MQTT·şÎñÆE
+    // è¿æ¥MQTTæœåŠ¡å™¨
     bool connect(const std::string& host, int port);
 
-    // ¶Ï¿ªÁ¬½Ó
+    // æ–­å¼€è¿æ¥
     void disconnect();
 
-    // ·¢ËÍÃEûÑ½LEDÆÁÄ»
+    // å‘é€LEDæ§åˆ¶å‘½ä»¤
     void sendCommand(int messageId);
 
-    // ²¥·ÅÎÄ×ÖºÍÓEôÄÚÈİ
+    // æ’­æ”¾æŒ‡å®šå†…å®¹ï¼ˆLED æ˜¾ç¤º + è¯­éŸ³æ’­æŠ¥ï¼‰
     void playContent(int messageId);
+
+    // è¿›è¡Œè¯­éŸ³æ’­æŠ¥
+    void playVoice(const std::string& text);
 
 private:
     txrMqttClient* m_client;
+    std::string m_barcode;  // è®¾å¤‡å”¯ä¸€ç¼–å·
+    int m_messageSequence;  // é€’å¢çš„æ¶ˆæ¯åºåˆ—å·
+
+    // è·å–é€’å¢çš„ messageSequence
+    int generateMessageSequence();
 };
 
-// ÏûÏ¢ID¶¨ÒE
-#define VTK_MSG_0 (0) // Info: ÇEÖĞø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÔ¤Ô¼¶şÎ¬ÂEøĞĞÂÌÍ¨¼EâÔ¤Ô¼£¬Ö¸Ê¾µÆ³£ÁÁ±úæ¾Ô¤Ô¼³É¹¦¡£
-#define VTK_MSG_1 (1) // Info: Ô¤Ô¼³É¹¦
-#define VTK_MSG_2 (2) // Info: Ô¤Ô¼Ê§°Ü£¬ÇEÔºóÔÙÊÔ¡£
-#define VTK_MSG_3 (3) // Info: Ô¤Ô¼³É¹¦£¬ÇEÚÌ§¸ËºóÔÈËÙ½øÈEEâÇøÓò¡£ÈçĞèÈ¡ÏûÔ¤Ô¼£¬ÇEÖĞø°´Ñ¹°´Å¥£¬»òÕßÊ¹ÓÃÈ¡Ïû¶şÎ¬ÂE¡ÏûÔ¤Ô¼£¬Ö¸Ê¾µÆÉÁË¸±úæ¾È¡Ïû³É¹¦¡£
-#define VTK_MSG_4 (4) // Info: È¡Ïû³É¹¦
-#define VTK_MSG_5 (5) // Info: È¡ÏûÊ§°Ü£¬ÇEÔºóÔÙÊÔ¡£
-#define VTK_MSG_6 (6) // Info: Ç°·½ÕıÔÚ½øĞĞÂÌÍ¨¼Eâ£¬ºó·½³µÁ¾ÇEğ¸ú³µ½øÈEEâÇøÓò£¬ÇEÚµÈ´ıÇøµÈ´ı¡£
+// æ¶ˆæ¯å¤´éƒ¨å®šä¹‰ï¼ˆç¬¦åˆ `BXmqtt-Y` åè®®ï¼‰
+#define MQTT_MAGIC "BXPP"            // åè®®æ ‡è¯†
+#define MQTT_CONTROLLER_TYPE "0x0a32" // è®¾å¤‡å‹å·
+#define MQTT_PROTOCOL_VERSION "0.0.4" // åè®®ç‰ˆæœ¬å·
 
+// æ¶ˆæ¯IDå®šä¹‰
+#define VTK_MSG_0 (0)
+#define VTK_MSG_1 (1)
+#define VTK_MSG_2 (2)
+#define VTK_MSG_3 (3)
+#define VTK_MSG_4 (4)
+#define VTK_MSG_5 (5)
+#define VTK_MSG_6 (6)
