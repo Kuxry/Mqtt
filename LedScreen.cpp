@@ -83,7 +83,39 @@ void LedScreen::playContent(int messageId)
     // 使用updateDynamic命令发送文本
     nlohmann::json payload;
     payload["name"] = "updateDynamic";
-    payload["input"]["text"] = text;
+    payload["input"]["dynamics"] = {
+        {
+            {"id", "0"},
+            {"xCoord", "0"},
+            {"yCoord", "0"},
+            {"width", "200"},
+            {"height", "300"},
+            {"transparency", "50"},
+            {"unit", {
+                {
+                    {"type", "text"},
+                    {"order", "1"},
+                    {"stuntType", "1"},
+                    {"stuntSpeed", "1"},
+                    {"stayTime", "5"},
+                    {"content", text},
+                    {"bgColor", "0xFF00FF00"},
+                    {"font", {
+                        {"family", "宋体"},
+                        {"size", 5},
+                        {"size_type", "pixel"},
+                        {"color", "0"},
+                        {"bold", "false"},
+                        {"italic", "false"},
+                        {"strikeout", "false"},
+                        {"underline", "false"}
+                    }},
+                    {"alignment-H", "0"},
+                    {"alignment-V", "0"}
+                }
+            }}
+        }
+    };
 
     // 构建MQTT消息
     std::string mqttMessage = std::string(MQTT_MAGIC) + " " +
