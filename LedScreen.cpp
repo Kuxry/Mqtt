@@ -80,11 +80,9 @@ void LedScreen::playContent(int messageId)
         break;
     }
 
-    // 发送LED显示内容
+    // 使用updateDynamic命令发送文本
     nlohmann::json payload;
-    payload["name"] = "startPlay";
-    payload["input"]["type"] = "program";
-    payload["input"]["playlist"] = "/lists/play_" + std::to_string(messageId) + ".json"; // 设定播放列表
+    payload["name"] = "updateDynamic";
     payload["input"]["text"] = text;
 
     // 构建MQTT消息
